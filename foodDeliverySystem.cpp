@@ -1,6 +1,15 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// Cross-platform screen clear
+void clearScreen() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
 vector<unordered_map<string, string>> user; // Global user storage
 unordered_map<string, unordered_map<string, int>> menu; // Global menu storage
 vector<int> order; // Global order storage
@@ -83,6 +92,9 @@ private:
 
 public:
     void registration() {
+        clearScreen();
+        cout << "Welcome to Food Delivery System\n";
+        cout << "-----------------------------------------------\n";
         cout << "Registration For New User\n";
         string newUserID, newName, newEmail, newPhone, newPassword, newUserType;
         cout << "Enter Name: ";
@@ -91,7 +103,7 @@ public:
         cin >> newEmail;
         cout << "Enter Phone: ";
         cin >> newPhone;
-        cout << "Enter User Type (Customer, Restaurant, DeliveryPartner): ";
+        cout << "Enter User Type (Customer-C, Restaurant-R, DeliveryPartner-D): ";
         cin >> newUserType;
         cout << "Enter Password: ";
         cin >> newPassword;
@@ -102,12 +114,12 @@ public:
             {"phone", newPhone}, {"password", newPassword}, {"userType", newUserType}
         };
 
-        if (newUserType == "Customer") {
+        if (newUserType == "C" || newUserType == "c") {
             string newAddress;
             cout << "Enter Address: ";
             cin >> newAddress;
             newUser["address"] = newAddress;
-        } else if (newUserType == "Restaurant") {
+        } else if (newUserType == "R" || newUserType == "r") {
             string restaurantDetails, newLocation;
             cout << "Enter Location: ";
             cin >> newLocation;
@@ -115,7 +127,7 @@ public:
             cin >> restaurantDetails;
             newUser["restaurantDetails"] = restaurantDetails;
             newUser["location"] = newLocation;
-        } else if (newUserType == "DeliveryPartner") {
+        } else if (newUserType == "D" || newUserType == "d") {
             string newVehicleDetails;
             cout << "Enter Vehicle Details: ";
             cin >> newVehicleDetails;
@@ -126,21 +138,52 @@ public:
         }
         user.push_back(newUser);
         cout << "Registration successful! User ID: " << newUserID << endl;
+        cout << "-----------------------------------------------\n";
+        login();
     }
 
     void login() {
+        clearScreen();
+        cout << "Welcome to Food Delivery System\n";
+        cout << "-----------------------------------------------\n";
+        bool foundEmail = false, foundPassword = false;
+
         cout << "Enter Email: ";
         cin >> email;
-        cout << "Enter Password: ";
-        cin >> passwordHash;
+
         for (const auto& u : user) {
-            if (u.at("email") == email && u.at("password") == passwordHash) {
-                cout << "Login Successful\n";
-                verifyOTP();
-                return;
+            if (u.at("email") == email ) {
+                foundEmail = true;
+                cout << "Enter Password: ";
+                cin >> passwordHash;
+
+                if (u.at("password") == passwordHash) {
+                    foundPassword = true;
+                    cout << "Login Successful\n";
+                    verifyOTP();
+                    return;
+                }
             }
         }
-        cout << "Login Failed\n";
+
+        if (!foundEmail) {
+            cout << "Email not found\n";
+            cout << "Do you want to register? (y/n): ";
+            char choice;
+            cin >> choice;
+            if (choice == 'y'){
+                registration();
+            } else {
+                cout;
+            }
+            cout << "Login Failed\n";
+            return;
+        }
+        if (foundEmail && !foundPassword) {
+            cout << "Incorrect Password\n";
+            cout << "Login Failed\n";
+            return;
+        }
     }
 
     void logout() { cout << "Logout\n"; }
@@ -622,9 +665,23 @@ public:
 };
 
 int main() {
+    clearScreen();
+
+    cout << "Welcome to Food Delivery System\n";
+    cout << "-----------------------------------------------\n";
+    cout << "Enter 1 for Registration OR 2 for Login : ";
+    int choice;
+    cin >> choice;
+    
     Authentication auth;
-    auth.registration();
-    auth.login();
+    if (choice == 1) {
+        auth.registration();
+    } else if (choice == 2) {
+        auth.login();
+    } else {
+        cout << "Invalid choice\n";
+        return 0;
+    }
 
     // Initialize with a valid userID (assuming registration created one)
     string userID = user.empty() ? "default" : user[0]["userID"];
