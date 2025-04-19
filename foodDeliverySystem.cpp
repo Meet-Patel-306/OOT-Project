@@ -12,6 +12,15 @@ void clearScreen() {
     #endif
 }
 
+// Clear the last 2 lines
+void clearLastNLines(int n) {
+    for (int i = 0; i < n; ++i) {
+        // Move cursor up one line and clear the line
+        cout << "\033[A\33[2K\r";
+    }
+    cout.flush();
+}
+
 vector<unordered_map<string, string>> user; // Global user storage
 unordered_map<string, unordered_map<string, int>> menu; // Global menu storage
 vector<int> order; // Global order storage
@@ -94,157 +103,238 @@ public:
 };
 
 class Authentication {
-private:
-    string sessionToken;
-    string passwordHash;
-    string email;
+    private:
+        string sessionToken;
+        string passwordHash;
+        string email;
 
-public:
-    void registration() {
-        clearScreen();
-        cout << "Welcome to Food Delivery System\n";
-        cout << "-----------------------------------------------\n";
-        cout << "Registration For New User\n";
-        string newUserID, newEmail, newPhone, newPassword, newUserType;
-        cout << "Enter Email: ";
-        cin >> newEmail;
-        cout << "Enter Phone: ";
-        cin >> newPhone;
-        cout << "Enter Password: ";
-        cin >> newPassword;
-        cout << "Enter User Type (Customer-C, Restaurant-R, DeliveryPartner-D): ";
-        cin >> newUserType;
-        
-        newUserID = newEmail + to_string(rand() % 1000);
-        unordered_map<string, string> newUser = {
-            {"userID", newUserID}, {"email", newEmail}, {"phone", newPhone}, {"password", newPassword}, {"userType", newUserType}
-        };
-        
-        cout << "-----------------------------------------------\n";
-        if (newUserType == "C" || newUserType == "c") {
-            string firstName, secondName, newAddress, newName;
-
-            cout << "Enter Your FirstName: ";
-            cin >> firstName;
-            cout << "Enter Your LastName : ";
-            cin >> secondName;
-            newName = firstName + " " + secondName;
-            newUser["name"] = newName; 
-
-            cout << "Enter Address: ";
-            cin >> newAddress;
-            newUser["address"] = newAddress;
-        } else if (newUserType == "R" || newUserType == "r") {
-            string newRestaurantName, newLocation;
-
-            cout << "Enter Location: ";
-            cin >> newLocation;
-            newUser["restaurantLocation"] = newLocation;
-
-            cout << "Enter Restaurant Name: ";
-            cin >> newRestaurantName;
-            newUser["restaurantName"] = newRestaurantName;
-        } else if (newUserType == "D" || newUserType == "d") {
-            string newVehicleNumber, newVehicleType, newVehicleModel;
-
-            cout << "Enter Vehicle Number: ";
-            cin >> newVehicleNumber;
-            newUser["vehicleNumber"] = newVehicleNumber;
-
-            cout << "Enter Vehicle Type: ";
-            cin >> newVehicleType;
-            newUser["vehicleType"] = newVehicleType;
+    public:
+        void registration() {
+            clearScreen();
+            cout << "Welcome to Food Delivery System\n";
+            cout << "-----------------------------------------------\n";
+            cout << "Registration For New User\n";
+            string newUserID, newEmail, newPhone, newPassword, newUserType;
+            cout << "Email-ID: ";
+            cin >> newEmail;
+            cout << "Phone Number: ";
+            cin >> newPhone;
+            cout << "Password: ";
+            cin >> newPassword;
+            cout << "Enter User Type (Customer-C, Restaurant-R, DeliveryPartner-D): ";
+            cin >> newUserType;
             
-            cout << "Enter Vehicle Model: ";
-            cin >> newVehicleModel;
-            newUser["vehicleModel"] = newVehicleModel;
-        } else {
-            cout << "Invalid user type!\n";
-            return;
+            newUserID = newEmail + to_string(rand() % 1000);
+            unordered_map<string, string> newUser = {
+                {"userID", newUserID}, {"email", newEmail}, {"phone", newPhone}, {"password", newPassword}, {"userType", newUserType}
+            };
+            
+            cout << "-----------------------------------------------\n";
+            if (newUserType == "C" || newUserType == "c") {
+                string firstName, secondName, newAddress, newName;
+
+                cout << "FirstName: ";
+                cin >> firstName;
+                cout << "LastName : ";
+                cin >> secondName;
+                
+                // Clear the last 2 lines
+                clearLastNLines(2);
+                
+                newName = firstName + " " + secondName;
+                cout << "Your Full Name: " << newName << endl;
+                newUser["name"] = newName; 
+
+                cout << "Enter Address: ";
+                cin >> newAddress;
+                newUser["address"] = newAddress;
+
+            } else if (newUserType == "R" || newUserType == "r") {
+                string newRestaurantName, newLocation;
+
+                cout << "Restaurant Name: ";
+                cin >> newRestaurantName;
+                newUser["restaurantName"] = newRestaurantName;
+                
+                cout << "Restaurant Location: ";
+                cin >> newLocation;
+                newUser["restaurantLocation"] = newLocation;
+
+            } else if (newUserType == "D" || newUserType == "d") {
+                string newVehicleNumber, newVehicleType, newVehicleModel;
+
+                cout << "Enter Vehicle Number: ";
+                cin >> newVehicleNumber;
+                newUser["vehicleNumber"] = newVehicleNumber;
+
+                cout << "Enter Vehicle Type: ";
+                cin >> newVehicleType;
+                newUser["vehicleType"] = newVehicleType;
+                
+                cout << "Enter Vehicle Model: ";
+                cin >> newVehicleModel;
+                newUser["vehicleModel"] = newVehicleModel;
+            } else {
+                cout << "Invalid user type!\n";
+                return;
+            }
+            user.push_back(newUser);
+            cout << "Registration successful!\n";
+            cout << "User ID: " << newUserID << endl;
+            cout << "-----------------------------------------------\n";
+            this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
+            login();
         }
-        user.push_back(newUser);
-        cout << "Registration successful!\n";
-        cout << "User ID: " << newUserID << endl;
-        cout << "-----------------------------------------------\n";
-        this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
-        login();
-    }
 
-    void login() {
-        clearScreen();
-        cout << "Welcome to Food Delivery System\n";
-        cout << "-----------------------------------------------\n";
-        bool foundEmail = false, foundPassword = false;
+        void login() {
+            clearScreen();
+            cout << "Welcome to Food Delivery System\n";
+            cout << "-----------------------------------------------\n";
+            bool foundEmail = false, foundPassword = false;
 
-        cout << "Enter Email: ";
-        cin >> email;
+            cout << "Enter Email: ";
+            cin >> email;
 
-        for (const auto& u : user) {
-            if (u.at("email") == email ) {
-                foundEmail = true;
-                cout << "Enter Password: ";
-                cin >> passwordHash;
+            for (const auto& u : user) {
+                if (u.at("email") == email ) {
+                    foundEmail = true;
+                    cout << "Enter Password: ";
+                    cin >> passwordHash;
 
-                if (u.at("password") == passwordHash) {
-                    foundPassword = true;
-                    this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
-                    verifyOTP();
-                    cout << "Login Successful\n";
-                    cout << "-----------------------------------------------\n";
-                    return;
+                    if (u.at("password") == passwordHash) {
+                        foundPassword = true;
+                        this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
+                        verifyOTP();
+                        cout << "Login Successful\n";
+                        cout << "-----------------------------------------------\n";
+                        return;
+                    }
                 }
             }
-        }
 
-        if (!foundEmail) {
-            cout << "Email not found\n";
-            cout << "Do you want to register? (y/n): ";
-            char choice;
-            cin >> choice;
-            if (choice == 'y'){
-                registration();
-            } else {
-                cout << "Login Failed\n";
+            if (!foundEmail) {
+                cout << "Email not found\n";
+                cout << "Do you want to register? (y/n): ";
+                char choice = 'y';
+                cin >> choice;
+                
+                clearLastNLines(1);         // Clear the last 2 lines
+                
+                if (choice == 'y' || choice == 'Y') {
+                    cout << "Registration...\n";
+                    this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                    registration();
+                } else {
+                    cout << "Login Failed.. Try again\n";
+                    this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                    login();
+                }
+                return;
             }
-            return;
+            if (foundEmail && !foundPassword) {
+                cout << "Incorrect Password\n";
+                cout << "Do you want to reset your password? (y/n): ";
+                char choice;
+                cin >> choice;
+                clearLastNLines(1);         // Clear the last 2 lines
+                cout << "-----------------------------------------------\n";
+                if (choice == 'y'){
+                    cout << "Password Resetting...\n";
+                    this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                    clearLastNLines(1);         // Clear the last 2 lines
+                    if(!resetPassword()){
+                        cout << "Password Reset Failed...\n";
+                        this_thread::sleep_for(chrono::milliseconds(1500)); // sleep for miliseconds
+                        clearLastNLines(1);         // Clear the last 2 lines
+                        cout << "Login Failed....\n";
+                        return;
+                    }
+                } else {
+                    cout << "Login Failed\n";
+                    return;
+                }
+                cout << "Login Successful\n";
+                cout << "-----------------------------------------------\n";
+                this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
+                return;
+            }
         }
-        if (foundEmail && !foundPassword) {
-            cout << "Incorrect Password\n";
-            cout << "Login Failed\n";
-            return;
+
+        void logout() { 
+            cout << "Logout\n";  
         }
-    }
 
-    void logout() { cout << "Logout\n"; }
-    void resetPassword() { cout << "Reset Password\n"; }
-
-    void verifyOTP() {
-        clearScreen();
-        cout << "Welcome to Food Delivery System\n";
-        cout << "-----------------------------------------------\n";
-        int otp = rand() % 9000 + 1000; // Generate a 4-digit OTP
-        cout << "OTP sent to your registered email: " << email << endl;
-        cout << "OTP: " << otp << endl;
-        
-        cout << "Please enter the OTP to verify your account.\n";
-        int otpEnter;
-        cout << "Enter OTP: ";
-        cin >> otpEnter;
-
-        cout << "Verifying OTP....\n";
-        this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
-        
-        if (otpEnter == otp) {
-            cout << "OTP is Valid\n";
-        } else {
-            cout << "OTP is Invalid\n";
+        bool resetPassword() { 
+            if(!verifyOTP()) {
+                cout << "OTP verification failed...\n";
+                cout << "Resenting OTP...\n";
+                this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                clearLastNLines(2);         // Clear the last 2 lines
+                if(!verifyOTP()) {
+                    cout << "OTP verification failed...\n";
+                    cout << "Exiting...\n";
+                    this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                    clearLastNLines(2);         // Clear the last 2 lines
+                    return false;
+                }
+            }
+            cout << "Enter new password: ";
+            string newPassword;
+            cin >> newPassword;
+            newPassword:
+            cout << "Confirm new password: ";
+            string confirmPassword;
+            cin >> confirmPassword;
+            if (newPassword == confirmPassword) {
+                cout << "Password Reset Successful\n";
+                cout << "-----------------------------------------------\n";
+                this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                clearLastNLines(4);         // Clear the last 2 lines
+                return true;
+            } else {
+                clearLastNLines(1);         // Clear the last 2 lines
+                goto newPassword;
+            }
         }
-        cout << "-----------------------------------------------\n";
-    }
 
-    void generateSessionToken() {
-        cout << "Generating Session Token: " << rand() % 100000000 << endl;
-    }
+        bool verifyOTP() {
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<> dist(1000, 9999);
+            int otp = dist(gen);
+            // int otp = rand() % 9000 + 1000; // Generate a 4-digit OTP
+            cout << "OTP sent to your registered email: " << email << endl;
+            cout << "OTP: " << otp << endl;
+            
+            cout << "Please enter the OTP to verify your account.\n";
+            int otpEnter;
+            cout << "Enter OTP: ";
+            cin >> otpEnter;
+
+            clearLastNLines(4);         // Clear the last 2 lines
+            
+            
+            cout << "Verifying OTP....\n";
+            this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
+            clearLastNLines(1);         // Clear the last 2 lines
+            
+            if (otpEnter == otp) {
+                cout << "OTP is Valid\n";
+                this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                clearLastNLines(1);         // Clear the last 2 lines
+                return true;
+                
+            } else {
+                cout << "OTP is Invalid\n";
+                this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
+                clearLastNLines(1);         // Clear the last 2 lines
+                return false;
+            }
+        }
+
+        void generateSessionToken() {
+            cout << "Generating Session Token: " << rand() % 100000000 << endl;
+        }
 };
 
 class Customer : public User {
