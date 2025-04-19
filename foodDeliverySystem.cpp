@@ -1,4 +1,6 @@
 #include <bits/stdc++.h>
+#include <thread>
+#include <chrono>
 using namespace std;
 
 // Cross-platform screen clear
@@ -72,6 +74,13 @@ public:
         }
     }
 
+    void viewProfile() {
+        cout << "User ID: " << userID << endl;
+        cout << "Name: " << name << endl;
+        cout << "Email: " << email << endl;
+        cout << "Phone: " << phone << endl;
+    }
+
     void deleteProfile() {
         for (auto it = user.begin(); it != user.end(); ++it) {
             if (it->at("userID") == userID) {
@@ -96,49 +105,68 @@ public:
         cout << "Welcome to Food Delivery System\n";
         cout << "-----------------------------------------------\n";
         cout << "Registration For New User\n";
-        string newUserID, newName, newEmail, newPhone, newPassword, newUserType;
-        cout << "Enter Name: ";
-        cin >> newName;
+        string newUserID, newEmail, newPhone, newPassword, newUserType;
         cout << "Enter Email: ";
         cin >> newEmail;
         cout << "Enter Phone: ";
         cin >> newPhone;
-        cout << "Enter User Type (Customer-C, Restaurant-R, DeliveryPartner-D): ";
-        cin >> newUserType;
         cout << "Enter Password: ";
         cin >> newPassword;
-
+        cout << "Enter User Type (Customer-C, Restaurant-R, DeliveryPartner-D): ";
+        cin >> newUserType;
+        
         newUserID = newEmail + to_string(rand() % 1000);
         unordered_map<string, string> newUser = {
-            {"userID", newUserID}, {"name", newName}, {"email", newEmail},
-            {"phone", newPhone}, {"password", newPassword}, {"userType", newUserType}
+            {"userID", newUserID}, {"email", newEmail}, {"phone", newPhone}, {"password", newPassword}, {"userType", newUserType}
         };
-
+        
+        cout << "-----------------------------------------------\n";
         if (newUserType == "C" || newUserType == "c") {
-            string newAddress;
+            string firstName, secondName, newAddress, newName;
+
+            cout << "Enter Your FirstName: ";
+            cin >> firstName;
+            cout << "Enter Your LastName : ";
+            cin >> secondName;
+            newName = firstName + " " + secondName;
+            newUser["name"] = newName; 
+
             cout << "Enter Address: ";
             cin >> newAddress;
             newUser["address"] = newAddress;
         } else if (newUserType == "R" || newUserType == "r") {
-            string restaurantDetails, newLocation;
+            string newRestaurantName, newLocation;
+
             cout << "Enter Location: ";
             cin >> newLocation;
-            cout << "Enter Restaurant Details: ";
-            cin >> restaurantDetails;
-            newUser["restaurantDetails"] = restaurantDetails;
-            newUser["location"] = newLocation;
+            newUser["restaurantLocation"] = newLocation;
+
+            cout << "Enter Restaurant Name: ";
+            cin >> newRestaurantName;
+            newUser["restaurantName"] = newRestaurantName;
         } else if (newUserType == "D" || newUserType == "d") {
-            string newVehicleDetails;
-            cout << "Enter Vehicle Details: ";
-            cin >> newVehicleDetails;
-            newUser["Girish"] = newVehicleDetails;
+            string newVehicleNumber, newVehicleType, newVehicleModel;
+
+            cout << "Enter Vehicle Number: ";
+            cin >> newVehicleNumber;
+            newUser["vehicleNumber"] = newVehicleNumber;
+
+            cout << "Enter Vehicle Type: ";
+            cin >> newVehicleType;
+            newUser["vehicleType"] = newVehicleType;
+            
+            cout << "Enter Vehicle Model: ";
+            cin >> newVehicleModel;
+            newUser["vehicleModel"] = newVehicleModel;
         } else {
             cout << "Invalid user type!\n";
             return;
         }
         user.push_back(newUser);
-        cout << "Registration successful! User ID: " << newUserID << endl;
+        cout << "Registration successful!\n";
+        cout << "User ID: " << newUserID << endl;
         cout << "-----------------------------------------------\n";
+        this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
         login();
     }
 
@@ -159,8 +187,10 @@ public:
 
                 if (u.at("password") == passwordHash) {
                     foundPassword = true;
-                    cout << "Login Successful\n";
+                    this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
                     verifyOTP();
+                    cout << "Login Successful\n";
+                    cout << "-----------------------------------------------\n";
                     return;
                 }
             }
@@ -174,9 +204,8 @@ public:
             if (choice == 'y'){
                 registration();
             } else {
-                cout;
+                cout << "Login Failed\n";
             }
-            cout << "Login Failed\n";
             return;
         }
         if (foundEmail && !foundPassword) {
@@ -190,16 +219,27 @@ public:
     void resetPassword() { cout << "Reset Password\n"; }
 
     void verifyOTP() {
-        int otp = rand() % 9000 + 1000;
+        clearScreen();
+        cout << "Welcome to Food Delivery System\n";
+        cout << "-----------------------------------------------\n";
+        int otp = rand() % 9000 + 1000; // Generate a 4-digit OTP
+        cout << "OTP sent to your registered email: " << email << endl;
         cout << "OTP: " << otp << endl;
+        
+        cout << "Please enter the OTP to verify your account.\n";
         int otpEnter;
         cout << "Enter OTP: ";
         cin >> otpEnter;
+
+        cout << "Verifying OTP....\n";
+        this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
+        
         if (otpEnter == otp) {
-            cout << "Valid OTP\n";
+            cout << "OTP is Valid\n";
         } else {
-            cout << "Invalid OTP\n";
+            cout << "OTP is Invalid\n";
         }
+        cout << "-----------------------------------------------\n";
     }
 
     void generateSessionToken() {
@@ -675,8 +715,10 @@ int main() {
     
     Authentication auth;
     if (choice == 1) {
+        this_thread::sleep_for(chrono::milliseconds(100)); // sleep for miliseconds
         auth.registration();
     } else if (choice == 2) {
+        this_thread::sleep_for(chrono::milliseconds(100)); // sleep for miliseconds
         auth.login();
     } else {
         cout << "Invalid choice\n";
@@ -684,18 +726,18 @@ int main() {
     }
 
     // Initialize with a valid userID (assuming registration created one)
-    string userID = user.empty() ? "default" : user[0]["userID"];
-    Restaurant res(userID);
-    res.manageMenus();
-    res.displayMenu();
+    // string userID = user.empty() ? "default" : user[0]["userID"];
+    // Restaurant res(userID);
+    // res.manageMenus();
+    // res.displayMenu();
 
-    Customer customer(userID);
-    customer.searchRestaurant();
+    // Customer customer(userID);
+    // customer.searchRestaurant();
 
-    Cart cart;
-    cart.customerID = userID;
-    cart.addItem();
-    cart.placeOrder();
+    // Cart cart;
+    // cart.customerID = userID;
+    // cart.addItem();
+    // cart.placeOrder();
 
     return 0;
 }
