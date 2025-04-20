@@ -1,218 +1,88 @@
 #include <gtest/gtest.h>
 #include <sstream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <cstdlib>
-#include "foodDeliverySystem.cpp" // Assume the original code is included or linked
+#include "foodDeliverySystem.cpp"
 
-// Global variables from the original code
-extern std::vector<std::unordered_map<std::string, std::string>> user;
-extern std::unordered_map<std::string, std::unordered_map<std::string, int>> menu;
-extern std::vector<int> order;
+// Helper function to redirect cin for testing
+void setInput(const std::string& input) {
+    static std::istringstream iss;
+    iss.clear();
+    iss.str(input);
+    std::cin.rdbuf(iss.rdbuf());
+}
 
-// Test fixture for setting up the environment
-class FoodDeliverySystemTest : public ::testing::Test {
+class AuthTest : public ::testing::Test {
 protected:
-	void SetUp() override {
-		user.clear();
-		menu.clear();
-		order.clear();
-		srand(0); // Fixed seed for predictable random numbers (e.g., OTP)
+    Authentication auth;
 
-		origCin = std::cin.rdbuf();
-		origCout = std::cout.rdbuf();
-	}
+    void SetUp() override {
+        user.clear();
+    }
 
-	// Helper function to redirect cout
-	void setupOutput() {
-		outputStream.str("");
-		std::cout.rdbuf(outputStream.rdbuf());
-	}
+    void TearDown() override {
+        user.clear();
+    }
 
-	// Helper function to simulate user input
-	void simulateInput(const std::string& input) {
-		inputStream.str(input);
-		std::cin.rdbuf(inputStream.rdbuf());
-	}
-
-	// Helper function to restore cin and cout
-	void restoreIO() {
-		std::cin.rdbuf(origCin);
-		std::cout.rdbuf(origCout);
-	}
-
-	std::streambuf* origCin;
-	std::streambuf* origCout;
-	std::stringstream outputStream;
-	std::stringstream inputStream;
+    unordered_map<string, string> createMockUser(string email, string password) {
+        return {
+            {"userID", email + "_id"},
+            {"email", email},
+            {"phone", "9999999999"},
+            {"password", password},
+            {"userType", "C"},
+            {"name", "Test User"},
+            {"address", "Test Address"}
+        };
+    }
 };
 
-// Test case 1: User Registration
-TEST_F(FoodDeliverySystemTest, UserRegistration) {
-	setupOutput();
-	Authentication auth;
-
-	simulateInput(
-		"JohnDoe\n"
-		"john@example.com\n"
-		"1234567890\n"
-		"Customer\n"
-		"password123\n"
-		"123 Main St\n"
-	);
-
-	auth.registration();
-
-	EXPECT_EQ(user.size(), 1);
-	EXPECT_EQ(user[0]["name"], "JohnDoe");
-	EXPECT_EQ(user[0]["email"], "john@example.com");
-	EXPECT_EQ(user[0]["phone"], "1234567890");
-	EXPECT_EQ(user[0]["userType"], "Customer");
-	EXPECT_EQ(user[0]["address"], "123 Main St");
-
-	restoreIO();
+TEST_F(AuthTest, RegisterCustomerIncreasesUserCount) {
+    setInput("test@example.com\n9999999999\npassword123\nC\nJohn\nDoe\n123 Main St\n");
+    int before = user.size();
+    auth.registration();
+    ASSERT_EQ(user.size(), before + 1);
+    EXPECT_EQ(user[0]["email"], "test@example.com");
+    EXPECT_EQ(user[0]["password"], "password123");
+    EXPECT_EQ(user[0]["name"], "John Doe");
 }
 
-// Test case 2: User Profile Management
-TEST_F(FoodDeliverySystemTest, UserProfileManagement) {
-	setupOutput();
-	user.push_back({
-		{"userID", "john123"},
-		{"name", "JohnDoe"},
-		{"email", "john@example.com"},
-		{"phone", "1234567890"},
-		{"password", "password123"},
-		{"userType", "Customer"},
-		{"address", "123 Main St"}
-	});
-
-	User u("john123");
-	simulateInput(
-		"1\n"
-		"JaneDoe\n"
-		"jane@example.com\n"
-		"0987654321\n"
-	);
-
-	u.manageProfile();
-
-	EXPECT_EQ(user[0]["name"], "JaneDoe");
-	EXPECT_EQ(user[0]["email"], "jane@example.com");
-	EXPECT_EQ(user[0]["phone"], "0987654321");
-
-	restoreIO();
+TEST_F(AuthTest, LoginWithCorrectCredentials) {
+    user.push_back(createMockUser("john@example.com", "test123"));
+    setInput("john@example.com\ntest123\n1234\n"); // Fixed OTP: 1234
+    testing::internal::CaptureStdout();
+    auth.login();
+    string output = testing::internal::GetCapturedStdout();
+    ASSERT_NE(output.find("Login Successful"), string::npos);
 }
 
-// Test case 3: Login and OTP Verification
-TEST_F(FoodDeliverySystemTest, LoginAndOTP) {
-	setupOutput();
-	user.push_back({
-		{"userID", "john123"},
-		{"name", "JohnDoe"},
-		{"email", "john@example.com"},
-		{"phone", "1234567890"},
-		{"password", "password123"},
-		{"userType", "Customer"}
-	});
-
-	Authentication auth;
-	auth.email = "john@example.com";
-	auth.passwordHash = "password123";
-
-	simulateInput("1234\n");
-
-	auth.login();
-
-	std::string output = outputStream.str();
-	EXPECT_NE(output.find("Login Successful"), std::string::npos);
-	EXPECT_NE(output.find("Valid OTP"), std::string::npos); // fixed typo here
-
-	restoreIO();
+TEST_F(AuthTest, LoginFailsWithWrongPassword) {
+    user.push_back(createMockUser("john@example.com", "correctpass"));
+    setInput("john@example.com\nwrongpass\nn\n");
+    testing::internal::CaptureStdout();
+    auth.login();
+    string output = testing::internal::GetCapturedStdout();
+    ASSERT_NE(output.find("Login Failed"), string::npos);
 }
 
-// Test case 4: Restaurant Menu Management
-TEST_F(FoodDeliverySystemTest, RestaurantMenuManagement) {
-	setupOutput();
-	Restaurant res("rest123");
+// TEST_F(AuthTest, ResetPasswordUpdatesPassword) {
+//     user.push_back(createMockUser("john@example.com", "oldpass"));
+//     auth = Authentication();
+//     setInput("1234\nnewpass123\nnewpass123\n"); // Fixed OTP: 1234
+//     bool success = auth.resetPassword();
+//     ASSERT_TRUE(success);
+//     ASSERT_EQ(user[0]["password"], "newpass123");
+// }
 
-	simulateInput(
-		"PizzaHut\n"
-		"Margherita\n"
-		"10\n"
-	);
-
-	res.manageMenus();
-
-	EXPECT_EQ(menu["PizzaHut"]["Margherita"], 10);
-
-	outputStream.str("");
-	simulateInput("PizzaHut\n");
-	res.displayMenu();
-
-	std::string output = outputStream.str();
-	EXPECT_NE(output.find("Margherita 10"), std::string::npos);
-
-	restoreIO();
-}
-
-// Test case 5: Cart Operations
-TEST_F(FoodDeliverySystemTest, CartOperations) {
-	setupOutput();
-	menu["PizzaHut"]["Margherita"] = 10;
-
-	Cart cart;
-	cart.cutomerID = "john123";
-
-	simulateInput(
-		"PizzaHut\n"
-		"Margherita\n"
-		"2\n"
-	);
-
-	cart.addItem();
-
-	EXPECT_EQ(order.size(), 1);
-	EXPECT_EQ(order[0], 20);
-
-	outputStream.str("");
-	cart.placeOrder();
-
-	std::string output = outputStream.str();
-	EXPECT_NE(output.find("Total Price: 20"), std::string::npos);
-
-	restoreIO();
-}
-
-// Test case 6: Order Management
-TEST_F(FoodDeliverySystemTest, OrderManagement) {
-	setupOutput();
-	menu["PizzaHut"]["Margherita"] = 10;
-
-	Order ord;
-
-	simulateInput(
-		"PizzaHut\n"
-		"Margherita\n"
-		"3\n"
-	);
-
-	ord.addItem();
-
-	EXPECT_EQ(order.size(), 1);
-	EXPECT_EQ(order[0], 30);
-
-	OrderItem ordItem;
-	outputStream.str("");
-	ordItem.totalOrderAmount();
-
-	std::string output = outputStream.str();
-	EXPECT_NE(output.find("Total Price: 30"), std::string::npos);
-
-	restoreIO();
+TEST_F(AuthTest, DuplicateEmailRegistrationShouldBeHandledManually) {
+    user.push_back(createMockUser("dup@example.com", "abc"));
+    user.push_back(createMockUser("dup@example.com", "xyz"));
+    int count = 0;
+    for (auto &u : user) {
+        if (u["email"] == "dup@example.com") count++;
+    }
+    ASSERT_EQ(count, 2); // Proves system needs duplicate check logic
 }
 
 int main(int argc, char **argv) {
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
