@@ -49,7 +49,7 @@ public:
         }
       }
     }
-    cout << "User not found!" << endl;
+    // cout << "User not found!" << endl;
   }
 
   void manageProfile() {
@@ -401,50 +401,6 @@ public:
     }
   }
 
-  // void modifyReview(string reviewID) {
-  //   cout << "You can edit or delete your review\n";
-  //   cout << "1. Edit Review \t 2. Delete Review\n";
-  //   int choice;
-  //   cin >> choice;
-  //   cout << "Modifying review....\n";
-  //   if (choice == 1) {
-  //     editReview(reviewID);
-  //   } else {
-  //     deleteReview(reviewID);
-  //   }
-  //   cout << "Modify Review " << reviewID << " successfully.\n";
-  // }
-
-  // private:
-  //   void editReview(string reviewID) {
-  //     if (review.find(reviewID) != review.end()) {
-  //       cout << "Enter new rating: ";
-  //       cin >> rating;
-  //       cout << "Enter new comment: ";
-  //       cin >> comment;
-  //       time = string(__DATE__) + " " + string(__TIME__);
-  //       review[reviewID][3] = to_string(rating);
-  //       review[reviewID][4] = comment;
-  //       review[reviewID][5] = time;
-  //       cout << "User " << review[reviewID][0]
-  //            << " edited their review for restaurant " << review[reviewID][1]
-  //            << " and delivery partner " << review[reviewID][2] << " with
-  //            rating "
-  //            << review[reviewID][3] << " and comment " << review[reviewID][4]
-  //            << " at time " << review[reviewID][5] << ".\n";
-  //       cout << "Editing review " << reviewID << " successfully.\n";
-  //     } else {
-  //       cout << "Review ID not found\n";
-  //     }
-  //   }
-
-  //   void deleteReview(string reviewID) {
-  //     if (review.erase(reviewID)) {
-  //       cout << "Deleting review " << reviewID << " successfully.\n";
-  //     } else {
-  //       cout << "Review ID not found\n";
-  //     }
-  //   }
 };
 class Customer : public User {
 public:
@@ -481,11 +437,10 @@ public:
         cout << "Location: " << u.at("restaurantLocation") << endl;
         cout << "\nDish Name  | Price" << endl;
         cout << "-----------+------" << endl;
-        for (auto &i : menu[search]) {
-          cout << i.first << "  | " << i.second << endl;
-          cout << setw(10) << left << i.first << " | " << setw(5) << left
-               << i.second << endl;
+        for (const auto& item : menu[search]) {
+            cout << "\t\t- " << item.first << ": ₹" << item.second << endl;
         }
+        cout << "-----------------------------------------------\n";
         for (auto &i : review) {
           if (i.first == search) {
             cout << "Review: " << i.second[0] << endl;
@@ -503,14 +458,16 @@ public:
   void placeOrder() {
     Order o1;
     int choice;
-    cout << "\n1: Add item \t 2: Change item\n 3: Place Order\n";
+    cout << "\n1: Add item \n 2: Change item\n 3: Place Order\n";
     cin >> choice;
     while (choice != 3) {
       if (choice == 1) {
         o1.addItem();
+        cin >> choice;
       }
       if (choice == 2) {
         o1.changeOrder();
+        cin >> choice;
       }
     }
     o1.placeOrder();
@@ -518,14 +475,16 @@ public:
   void placeOrderCart() {
     Order o1;
     int choice;
-    cout << "\n1: Add item \t 2: Change item\n 3: Place Order\n";
+    cout << "\n1: Add item \n 2: Change item\n 3: Place Order\n";
     cin >> choice;
     while (choice != 3) {
       if (choice == 1) {
         o1.addItem();
+        cin >> choice;
       }
       if (choice == 2) {
         o1.changeOrder();
+        cin >> choice;
       }
     }
     o1.placeOrder();
@@ -705,12 +664,12 @@ public:
     cin >> userType;
     clearLastNLines(1); // Clear the last 2 lines
 
-    cout << "Enter UserName: ";
+    cout << "Enter Email: ";
     cin >> uId;
 
     for (const auto &u : user[userType]) {
       // cout<<uId<<endl;
-      if (u.at("name") == uId) {
+      if (u.at("email") == uId) {
         foundId = true;
 
         // cout<<uId;
@@ -808,7 +767,7 @@ public:
   }
 
   void logout() {
-    cout << "🔒 Logout successful. Thank you for using our service!\n;
+    cout << "Logout successful. Thank you for using our service!\n";
     this_thread::sleep_for(chrono::milliseconds(3000)); // sleep for miliseconds
     clearLastNLines(1); // Clear the last 2 lines
   }
@@ -916,15 +875,67 @@ int main() {
                        {"name", "meet"},
                        {"address", "asdasd"}});
 
-  user['R'].push_back({{"userID", "a"},
-                       {"email", "a"},
-                       {"phone", "1"},
-                       {"password", "a"},
+  user['R'].push_back({{"userID", "pizzahub"},
+                       {"email", "pizzahub@gmail.com"},
+                       {"phone", "1234567890"},
+                       {"password", "pizzahub"},
                        {"restaurantName", "pizzahub"},
-                       {"restaurantLocation", "asdasd"}});
+                       {"restaurantLocation", "Surat"}});
   menu["pizzahub"]["pizza"] = 250;
+  menu["pizzahub"]["burger"] = 150;
+  menu["pizzahub"]["pasta"] = 200;
+  menu["pizzahub"]["fries"] = 100;
+  menu["pizzahub"]["sandwich"] = 120;
 
-  user['D'].push_back({{"userID", "a"},
+  user['R'].push_back({{"userID", "b"},
+                       {"email", "spicybite@gmail.com"},
+                       {"phone", "9876543210"},
+                       {"password", "spicybite"},
+                       {"restaurantName", "spicybite"},
+                       {"restaurantLocation", "Mumbai"}});
+  menu["spicybite"]["biryani"] = 300;
+  menu["spicybite"]["tandoori"] = 350;
+  menu["spicybite"]["naan"] = 50;
+  menu["spicybite"]["paneer masala"] = 280;
+  menu["spicybite"]["dal tadka"] = 180;
+
+  user['R'].push_back({{"userID", "c"},
+                       {"email", "greenleaf@gmail.com"},
+                       {"phone", "1112223334"},
+                       {"password", "greenleaf"},
+                       {"restaurantName", "greenleaf"},
+                       {"restaurantLocation", "Delhi"}});
+  menu["greenleaf"]["salad"] = 130;
+  menu["greenleaf"]["soup"] = 110;
+  menu["greenleaf"]["grilled tofu"] = 220;
+  menu["greenleaf"]["quinoa bowl"] = 260;
+  menu["greenleaf"]["smoothie"] = 140;
+
+  user['R'].push_back({{"userID", "d"},
+                       {"email", "tandooripalace@gmail.com"},
+                       {"phone", "2223334445"},
+                       {"password", "tandooripalace"},
+                       {"restaurantName", "tandooripalace"},
+                       {"restaurantLocation", "Bangalore"}});
+  menu["tandooripalace"]["chicken tikka"] = 320;
+  menu["tandooripalace"]["butter naan"] = 40;
+  menu["tandooripalace"]["paneer tikka"] = 300;
+  menu["tandooripalace"]["mutton curry"] = 400;
+  menu["tandooripalace"]["lassi"] = 70;
+
+  user['R'].push_back({{"userID", "e"},
+                       {"email", "italiandelight@gmail.com"},
+                       {"phone", "3334445556"},
+                       {"password", "italiandelight"},
+                       {"restaurantName", "italiandelight"},
+                       {"restaurantLocation", "Pune"}});
+  menu["italiandelight"]["lasagna"] = 270;
+  menu["italiandelight"]["spaghetti"] = 240;
+  menu["italiandelight"]["bruschetta"] = 160;
+  menu["italiandelight"]["risotto"] = 250;
+  menu["italiandelight"]["tiramisu"] = 190;
+
+  user['D'].push_back({{"userID", "del"},
                        {"email", "a"},
                        {"phone", "1"},
                        {"password", "a"},
@@ -991,6 +1002,7 @@ int main() {
   if (choice == 1) {
     cust.giveReviews();
   }
-  cout << "Happy to serve you!";
+  auth.logout();
+  cout << "\nHappy to serve you!";
   return 0;
 }
