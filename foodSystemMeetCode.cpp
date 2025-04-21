@@ -319,8 +319,6 @@ public:
     r1.prepareOrder();
     r1.updateOrderStatus();
     this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for miliseconds
-    DeliveryPartner d1("del");
-    d1.updateOrderStatus();
     cout << "Order placed successfully\n";
   }
 
@@ -351,7 +349,7 @@ public:
     cin >> res;
     cout << "Enter food name: ";
     cin >> foodName;
-    cout << "1: Add item \t 2: Remove item\n";
+    cout << "1: Add item \t2: Remove item\n";
     cin >> choice;
     if (menu.find(res) == menu.end() ||
         menu[res].find(foodName) == menu[res].end()) {
@@ -391,14 +389,13 @@ public:
     cin >> res;
     string r;
     cout << "Enter review (1-5): ";
+    cin >> r;
     string comment;
     cout << "Enter comment: ";
-    cin >> comment;
-    cin >> r;
-    if (stoi(r) >= 1 && stoi(r) <= 5) {
-      review[res] = {res, r, comment};
-      cout << "Review submitted successfully\n";
-    }
+    cin.ignore(); 
+    getline(cin, comment);
+    review[res] = {res, r, comment};
+    cout << "Review submitted successfully\n";
   }
 
 };
@@ -431,16 +428,16 @@ public:
 
     for (const auto &u : user['R']) {
       if (u.at("restaurantName") == search) {
-        cout << "Restaurant " << search << "Found!.." << endl;
+        cout << "Restaurant " << search << " Found!.." << endl;
         cout << "Email: " << u.at("email") << endl;
         cout << "Phone: " << u.at("phone") << endl;
         cout << "Location: " << u.at("restaurantLocation") << endl;
-        cout << "\nDish Name  | Price" << endl;
-        cout << "-----------+------" << endl;
+        cout << "\n  Dish Name   | Price" << endl;
+        cout << "----------------+------" << endl;
         for (const auto& item : menu[search]) {
-            cout << "\t\t- " << item.first << ": ₹" << item.second << endl;
+            cout << setw(15)<<left<<item.first << " | " << item.second << endl;
         }
-        cout << "-----------------------------------------------\n";
+        cout << "----------------+------\n";
         for (auto &i : review) {
           if (i.first == search) {
             cout << "Review: " << i.second[0] << endl;
@@ -458,7 +455,7 @@ public:
   void placeOrder() {
     Order o1;
     int choice;
-    cout << "\n1: Add item \n 2: Change item\n 3: Place Order\n";
+    cout << "\n1: Add item \n2: Change item\n3: Place Order\n";
     cin >> choice;
     while (choice != 3) {
       if (choice == 1) {
@@ -475,7 +472,7 @@ public:
   void placeOrderCart() {
     Order o1;
     int choice;
-    cout << "\n1: Add item \n 2: Change item\n 3: Place Order\n";
+    cout << "\n1: Add item \n2: Change item\n3: Place Order\n";
     cin >> choice;
     while (choice != 3) {
       if (choice == 1) {
@@ -491,14 +488,8 @@ public:
   }
   void giveReviews() {
     cout << "Giving reviews\n";
-    int review;
-    cout << "Enter review (1-5): ";
-    cin >> review;
-    if (review >= 1 && review <= 5) {
-      cout << "Review: " << review << endl;
-    } else {
-      cout << "Invalid review\n";
-    }
+    Review r1;
+    r1.submitReview();
   }
   void addToCart() {
     Cart c1;
@@ -570,7 +561,8 @@ public:
       newUser["name"] = newName;
 
       cout << "Enter Address: ";
-      cin >> newAddress;
+      cin.ignore();
+      getline(cin, newAddress);
       newUser["address"] = newAddress;
       // newUser["userType"] = "Customer";
       // // {"userType", newUserType}
@@ -956,7 +948,15 @@ int main() {
   cout << "-----------------------------------------------\n";
 
   Authentication auth;
-  auth.login();
+  int reg;
+  cout<<"1: Login\n2: Register\n";
+  cin>>reg;
+  if(reg==2){
+    auth.registration();
+  }
+  else{
+    auth.login();
+  }
 
   Customer cust("a");
   cust.showRestaurant();
@@ -1003,6 +1003,6 @@ int main() {
     cust.giveReviews();
   }
   auth.logout();
-  cout << "\nHappy to serve you!";
+  cout << "\nHappy to serve you!\n";
   return 0;
 }
